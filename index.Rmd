@@ -4,7 +4,7 @@ output:
   flexdashboard::flex_dashboard:
     orientation: rows
     social: menu
-    vertical_layout: fill
+    vertical_layout: scroll
     theme: cerulean
     source_code: embed
 ---
