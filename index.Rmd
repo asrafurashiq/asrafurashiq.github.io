@@ -1,0 +1,206 @@
+---
+title: "Covid-19 Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    social: menu
+    vertical_layout: fill
+    theme: cerulean
+    source_code: embed
+---
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(leaflet)
+library(plotly)
+#load("datafinal.Rdata")
+source("Data manipulation.R",local = T)
+theme_set(ggthemes::theme_economist())
+
+df <-  data %>% group_by(location,data_type)%>% summarise(total=sum(value)) %>% pivot_wider(names_from = data_type,values_from=total)%>%arrange(-cases_new)
+```
+
+Overview
+====================================================================
+
+Sidebar{.sidebar}
+---------------------------------------------------------------
+Last updated:
+```{r}
+library(lubridate)
+d <- Sys.Date()-1
+ paste(day(d),months(d),",2020") 
+```
+
+_About :_
+I am a student of the department of Statistics at University of Dhaka,Bangladesh.I tried to build this dashboard.It's my first dashboard.Any kinds of mistake should be forgiven and mentioned.
+
+Data source: ```coronavirus``` package from Comprehensive R Archive Network(CRAN).
+
+[Know more about me(LinkedIn)]("https://www.linkedin.com/in/md-asrafur-rahman-ashiq-5462ab1a0/")
+
+ Row
+----------------------------------------------
+
+### Worldwide Confirmed {.value-box}
+```{r}
+valueBox(value = paste(format(sum(df$cases_new), big.mark = ","), "", sep = " "), 
+         caption = "Total Confirmed Cases", 
+         icon = "fas fa-user-md", 
+         color ="violet")
+```
+
+### Death {.value-box}
+```{r}
+valueBox(value = paste(format(sum(df$deaths_new, na.rm = TRUE), big.mark = ","), " (",
+                       round(100 * sum(df$deaths_new, na.rm = TRUE) / sum(df$cases_new), 1), 
+                       "%)", sep = ""),
+         caption = "Death Cases", 
+         icon = "fa-heartbeat", 
+         color = "#FF3333")
+```
+
+### Recovered {.value-box}
+```{r}
+valueBox(value = paste(format(sum(df$recovered_new, na.rm = TRUE), big.mark = ","), " (",
+                       round(100 * sum(df$recovered_new, na.rm = TRUE) / sum(df$cases_new), 1), 
+                       "%)", sep = ""),
+         caption = "Recovered Cases", 
+         icon = "fa-walking", 
+         color = "#33FFCC")
+```
+
+ Row {.tabset}
+------------------------------------------------------------------
+
+### Top affected countries
+
+```{r}
+ p1 <- df %>%filter(location %in% df$location[1:9])%>% ggplot(aes(reorder(location,-cases_new),cases_new))+geom_bar(stat="identity",aes(fill=location))+labs(y="total",x="")+theme(legend.position = "")+scale_y_continuous(breaks = seq(0,4e+6,1000000))+geom_text(aes(label=cases_new),vjust=-10000)+scale_fill_brewer(palette = "Set1")+theme(axis.text.x = element_text(angle = 0))
+ggplotly(p1)
+```
+
+### Datasets
+
+```{r}
+DT::datatable(df)
+```
+
+### Countries over date
+```{r fig.width=20}
+data %>% filter(location==df$location[1:10]) %>% group_by(location,date) %>%
+  summarise(sum=sum(value))%>% mutate(cum=cumsum(sum)) %>% mutate(lab=ifelse(cum==max(cum),location,""))%>%
+  ggplot(aes(date,cum))+geom_path(alpha=.2,size=1.2,col="red",aes(group=location))+
+  ggrepel::geom_text_repel(aes(label=lab),size=7)+scale_x_date(date_breaks = "1 month",date_labels = "%b %d")+theme_bw()
+```
+
+ Row {.tabset}
+------------------------------------------------------------
+
+### Top recovered countries
+```{r}
+p3 <- df %>%arrange(-recovered_new)%>%filter(location %in% df$location[1:9])%>% ggplot(aes(reorder(location,-recovered_new),recovered_new))+geom_bar(stat="identity",aes(fill=location))+labs(y="total",x="")+theme(legend.position = "")+ geom_text(aes(label=recovered_new),vjust=-10000)+scale_fill_brewer(palette = "Set1")+theme(axis.text.x = element_text(angle = 0))
+ggplotly(p3)
+
+```
+
+### Top countries with death
+
+```{r}
+p2 <- df %>%filter(location %in% df$location[1:9])%>% ggplot(aes(reorder(location,-deaths_new),deaths_new))+geom_bar(stat="identity",aes(fill=location))+labs(y="total",x="")+theme(legend.position = "")+scale_y_continuous(breaks = seq(0,250000,50000))+geom_text(aes(label=deaths_new),vjust=-10000)+scale_fill_brewer(palette = "Set1")+theme(axis.text.x = element_text(angle = 0))
+ggplotly(p2)
+
+```
+
+World Map
+================================================================
+Sidebar{.sidebar}
+---------------------------------------------------------------
+Wikipedia says,In December 2019, a pneumonia outbreak was reported in Wuhan, China.On 31 December 2019, the outbreak was traced to a novel strain of coronavirus, which was given the interim name 2019-nCoV by the World Health Organization (WHO), later renamed SARS-CoV-2 by the International Committee on Taxonomy of Viruses.
+
+As of **15 August 2020**, there have been at least 765,029 confirmed deaths and more than 21,173,009 confirmed cases in the COVID-19 pandemic. The Wuhan strain has been identified as a new strain of Betacoronavirus from group 2B with approximately 70% genetic similarity to the SARS-CoV.[114] The virus has a 96% similarity to a bat coronavirus, so it is widely suspected to originate from bats as well. The pandemic has resulted in travel restrictions and nationwide lockdowns in many countries. 
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Countries with more than 50k confirmed cases
+```{r}
+data %>% group_by(location,lat,long,data_type) %>%
+  summarise(sum=sum(value)) %>% ungroup() %>% filter(data_type=="cases_new",sum>50000) %>% leaflet()%>%addTiles()%>%addProviderTiles("Esri.WorldImagery")%>%setView(0,0,zoom = 1.9)%>%
+  addMarkers(lat = ~lat,lng = ~long,popup   = ~paste(sep="<br/>",
+    location,"Confirmed Cases :",sum),
+    label = ~paste(sep="\n",location,"Confirmed Cases :",sum),
+    labelOptions = labelOptions(textsize = "18px"),
+    popupOptions = popupOptions(maxHeight = 500)) 
+```
+
+ Situation of Bangladesh
+===============================================================
+
+ Row
+----------------------------------------------
+
+### Worldwide Confirmed {.value-box}
+```{r}
+df <- df %>% filter(location=="Bangladesh")
+valueBox(value = paste(format(sum(df$cases_new), big.mark = ","), "", sep = " "), 
+         caption = "Total Confirmed Cases", 
+         icon = "fas fa-user-md", 
+         color ="violet")
+```
+
+### Death {.value-box}
+```{r}
+valueBox(value = paste(format(sum(df$deaths_new, na.rm = TRUE), big.mark = ","), " (",
+                       round(100 * sum(df$deaths_new, na.rm = TRUE) / sum(df$cases_new), 1), 
+                       "%)", sep = ""),
+         caption = "Death Cases", 
+         icon = "fa-heartbeat", 
+         color = "#FF3333")
+```
+
+### Recovered {.value-box}
+```{r}
+valueBox(value = paste(format(sum(df$recovered_new, na.rm = TRUE), big.mark = ","), " (",
+                       round(100 * sum(df$recovered_new, na.rm = TRUE) / sum(df$cases_new), 1), 
+                       "%)", sep = ""),
+         caption = "Recovered Cases", 
+         icon = "fa-walking", 
+         color = "#33FFCC")
+```
+
+
+ Column
+---------------------------------------------------------------
+
+### Districts with more than 2500 confirmed cases
+
+```{r}
+library(sf)
+bd <- read_sf("Bangladesh data/BGD_adm2.shp")
+district <- readxl::read_xlsx("Bangladesh data/COVID-19.xlsx")
+#district <- district %>% mutate_geocode(District,source='dsk')
+#save(district,file="lat lon district.Rdata")
+load("lat lon district.Rdata")
+district <- district  %>% mutate(lab=ifelse(Cases>2500,paste(District,Cases),NA))
+m <-  ggplot(bd)+geom_sf(aes(fill=NAME_2))+
+  geom_point(data=district,aes(x=lon,y=lat,size=Cases),col="red")+
+  ggrepel::geom_label_repel(data=district,aes(x=lon,y=lat,label=as.character(lab),alpha=.5))+theme_minimal()+theme(legend.position = "")
+m
+
+```
+
+### Bangladesh Overall Scenario
+
+```{r}
+data$data_type <- str_replace(data$data_type,"_new","")
+p2 <- data %>% filter(location=="Bangladesh") %>%
+  group_by(data_type,date) %>%
+  summarise(sum_case=sum(value))%>%
+  mutate(cum_case=cumsum(sum_case))%>%
+  ggplot(aes(date,cum_case))+geom_path(aes(col=data_type),size=1.2)+
+  labs(y="Cumulative case ",x="months of 2020 ",caption = "Data : WHO")+
+  scale_y_continuous(breaks = seq(0,1.5e+7,50000))+scale_x_date(date_breaks = "1 month",date_labels = "%b %d")
+
+ggplotly(p2)
+```
