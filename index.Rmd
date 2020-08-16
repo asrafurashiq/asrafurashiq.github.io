@@ -33,7 +33,7 @@ d <- Sys.Date()-1
 ```
 
 _About :_
-I am a student of the department of Statistics at University of Dhaka,Bangladesh.I tried to build this dashboard.It's my first dashboard.Any kinds of mistake should be forgiven and mentioned.
+My name is **Md Asrafur Rahman Ashiq**.I am a student of the department of Statistics at University of Dhaka,Bangladesh.I tried to build this dashboard.It's my first dashboard.Any kinds of mistake should be forgiven and mentioned.
 
 Data source: ```coronavirus``` package from Comprehensive R Archive Network(CRAN).
 
