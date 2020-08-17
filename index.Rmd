@@ -17,7 +17,6 @@ library(plotly)
 source("Data manipulation.R",local = T)
 theme_set(ggthemes::theme_economist())
 
-df <-  data %>% group_by(location,data_type)%>% summarise(total=sum(value)) %>% pivot_wider(names_from = data_type,values_from=total)%>%arrange(-cases_new)
 ```
 
 Overview
@@ -44,7 +43,7 @@ Data source: ```coronavirus``` package from Comprehensive R Archive Network(CRAN
 
 ### Worldwide Confirmed {.value-box}
 ```{r}
-valueBox(value = paste(format(sum(df$cases_new), big.mark = ","), "", sep = " "), 
+valueBox(value = paste(format(sum(df$cases_new,na.rm = T), big.mark = ","), "", sep = " "), 
          caption = "Total Confirmed Cases", 
          icon = "fas fa-user-md", 
          color ="violet")
@@ -53,8 +52,8 @@ valueBox(value = paste(format(sum(df$cases_new), big.mark = ","), "", sep = " ")
 ### Death {.value-box}
 ```{r}
 valueBox(value = paste(format(sum(df$deaths_new, na.rm = TRUE), big.mark = ","), " (",
-                       round(100 * sum(df$deaths_new, na.rm = TRUE) / sum(df$cases_new), 1), 
-                       "%)", sep = ""),
+                       round(100 * sum(df$deaths_new, na.rm = TRUE) / sum(df$cases_new,na.rm = T), 1), 
+                       "%)", sep = " "),
          caption = "Death Cases", 
          icon = "fa-heartbeat", 
          color = "#FF3333")
@@ -63,7 +62,7 @@ valueBox(value = paste(format(sum(df$deaths_new, na.rm = TRUE), big.mark = ","),
 ### Recovered {.value-box}
 ```{r}
 valueBox(value = paste(format(sum(df$recovered_new, na.rm = TRUE), big.mark = ","), " (",
-                       round(100 * sum(df$recovered_new, na.rm = TRUE) / sum(df$cases_new), 1), 
+                       round(100 * sum(df$recovered_new, na.rm = TRUE) / sum(df$cases_new,na.rm = T), 1), 
                        "%)", sep = ""),
          caption = "Recovered Cases", 
          icon = "fa-walking", 
@@ -83,15 +82,19 @@ ggplotly(p1)
 ### Datasets
 
 ```{r}
-DT::datatable(df)
+d <- df%>%select(-lat,-long)  %>% rename(Cases=cases_new,
+                                         Deaths=deaths_new,
+                                         Recovered=recovered_new)
+d$lat <- NULL
+d %>%DT::datatable()
 ```
 
 ### Countries over date
-```{r fig.width=20}
+```{r fig.width=15}
 data %>% filter(location==df$location[1:10]) %>% group_by(location,date) %>%
   summarise(sum=sum(value))%>% mutate(cum=cumsum(sum)) %>% mutate(lab=ifelse(cum==max(cum),location,""))%>%
   ggplot(aes(date,cum))+geom_path(alpha=.2,size=1.2,col="red",aes(group=location))+
-  ggrepel::geom_text_repel(aes(label=lab),size=7)+scale_x_date(date_breaks = "1 month",date_labels = "%b %d")+theme_bw()
+  ggrepel::geom_text_repel(aes(label=lab),size=7)+scale_x_date(date_breaks = "1 month",date_labels = "%b %d")+theme_bw()+labs(y="Cumulative Cases")
 ```
 
  Row {.tabset}
@@ -124,14 +127,16 @@ Column {data-width=650}
 -----------------------------------------------------------------------
 
 ### Countries with more than 50k confirmed cases
-```{r}
-data %>% group_by(location,lat,long,data_type) %>%
-  summarise(sum=sum(value)) %>% ungroup() %>% filter(data_type=="cases_new",sum>50000) %>% leaflet()%>%addTiles()%>%addProviderTiles("Esri.WorldImagery")%>%setView(0,0,zoom = 1.9)%>%
-  addMarkers(lat = ~lat,lng = ~long,popup   = ~paste(sep="<br/>",
-    location,"Confirmed Cases :",sum),
-    label = ~paste(sep="\n",location,"Confirmed Cases :",sum),
-    labelOptions = labelOptions(textsize = "18px"),
-    popupOptions = popupOptions(maxHeight = 500)) 
+```{r fig.height=6.4}
+df %>% 
+ filter(cases_new>50000) %>% leaflet()%>%addTiles()%>%
+   addProviderTiles("Esri.WorldImagery")%>%setView(0,0,zoom = 2.3)%>%
+  addMarkers(lat = ~lat,lng = ~long,popup   = ~paste(sep="     ",location,"Confirmed Cases :",cases_new,",",
+                                                     " Deaths :",deaths_new,",","Recovered :",recovered_new),
+             label = ~paste0(location," (Click for details)"),
+             labelOptions = labelOptions(textsize = "18px"),
+             popupOptions = popupOptions(maxWidth = 200)) 
+
 ```
 
  Situation of Bangladesh
@@ -143,7 +148,7 @@ data %>% group_by(location,lat,long,data_type) %>%
 ### Worldwide Confirmed {.value-box}
 ```{r}
 df <- df %>% filter(location=="Bangladesh")
-valueBox(value = paste(format(sum(df$cases_new), big.mark = ","), "", sep = " "), 
+valueBox(value = paste(format(sum(df$cases_new,na.rm = T), big.mark = ","), "", sep = " "), 
          caption = "Total Confirmed Cases", 
          icon = "fas fa-user-md", 
          color ="violet")
@@ -152,7 +157,7 @@ valueBox(value = paste(format(sum(df$cases_new), big.mark = ","), "", sep = " ")
 ### Death {.value-box}
 ```{r}
 valueBox(value = paste(format(sum(df$deaths_new, na.rm = TRUE), big.mark = ","), " (",
-                       round(100 * sum(df$deaths_new, na.rm = TRUE) / sum(df$cases_new), 1), 
+                       round(100 * sum(df$deaths_new, na.rm = TRUE) / sum(df$cases_new,na.rm=T), 1), 
                        "%)", sep = ""),
          caption = "Death Cases", 
          icon = "fa-heartbeat", 
@@ -162,7 +167,7 @@ valueBox(value = paste(format(sum(df$deaths_new, na.rm = TRUE), big.mark = ","),
 ### Recovered {.value-box}
 ```{r}
 valueBox(value = paste(format(sum(df$recovered_new, na.rm = TRUE), big.mark = ","), " (",
-                       round(100 * sum(df$recovered_new, na.rm = TRUE) / sum(df$cases_new), 1), 
+                       round(100 * sum(df$recovered_new, na.rm = TRUE) / sum(df$cases_new,na.rm=T), 1), 
                        "%)", sep = ""),
          caption = "Recovered Cases", 
          icon = "fa-walking", 
@@ -173,9 +178,9 @@ valueBox(value = paste(format(sum(df$recovered_new, na.rm = TRUE), big.mark = ",
  Column
 ---------------------------------------------------------------
 
-### Districts with more than 2500 confirmed cases
+### Districts with more than 2500 confirmed cases(This map was last updated on 15 August,2020.)
 
-```{r}
+```{r fig.height=5}
 library(sf)
 bd <- read_sf("Bangladesh data/BGD_adm2.shp")
 district <- readxl::read_xlsx("Bangladesh data/COVID-19.xlsx")
