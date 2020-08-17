@@ -12,9 +12,9 @@ output:
 library(flexdashboard)
 library(tidyverse)
 library(leaflet)
-library(plotly)
-#load("datafinal.Rdata")
-source("Data manipulation.R",local = T)
+load("datafinal.Rdata")
+load("df.Rdata")
+#source("Data manipulation.R",local = T)
 theme_set(ggthemes::theme_economist())
 
 ```
@@ -75,8 +75,9 @@ valueBox(value = paste(format(sum(df$recovered_new, na.rm = TRUE), big.mark = ",
 ### Top affected countries
 
 ```{r}
- p1 <- df %>%filter(location %in% df$location[1:9])%>% ggplot(aes(reorder(location,-cases_new),cases_new))+geom_bar(stat="identity",aes(fill=location))+labs(y="total",x="")+theme(legend.position = "")+scale_y_continuous(breaks = seq(0,4e+6,1000000))+geom_text(aes(label=cases_new),vjust=-10000)+scale_fill_brewer(palette = "Set1")+theme(axis.text.x = element_text(angle = 0))
-ggplotly(p1)
+library(highcharter)
+df%>%filter(location %in% df$location[1:12])%>%       
+  hchart("column",hcaes(x=location,y=cases_new,color=location),name="Confirmed Cases",dataLabels = list(align = "center", enabled = TRUE)) %>%hc_yAxis(title=list(text="Total confirmed case")) %>%hc_xAxis(title="")%>%hc_add_theme(hc_theme_ggplot2())
 ```
 
 ### Datasets
@@ -90,11 +91,9 @@ d %>%DT::datatable()
 ```
 
 ### Countries over date
-```{r fig.width=15}
+```{r}
 data %>% filter(location==df$location[1:10]) %>% group_by(location,date) %>%
-  summarise(sum=sum(value))%>% mutate(cum=cumsum(sum)) %>% mutate(lab=ifelse(cum==max(cum),location,""))%>%
-  ggplot(aes(date,cum))+geom_path(alpha=.2,size=1.2,col="red",aes(group=location))+
-  ggrepel::geom_text_repel(aes(label=lab),size=7)+scale_x_date(date_breaks = "1 month",date_labels = "%b %d")+theme_bw()+labs(y="Cumulative Cases")
+  summarise(sum=sum(value))%>% mutate(cum=cumsum(sum)) %>% hchart("line",hcaes(x=date,y=cum,group=location))%>%hc_yAxis(title=list(text="Cumulative Confirmed cases"))
 ```
 
  Row {.tabset}
@@ -102,18 +101,19 @@ data %>% filter(location==df$location[1:10]) %>% group_by(location,date) %>%
 
 ### Top recovered countries
 ```{r}
-p3 <- df %>%arrange(-recovered_new)%>%filter(location %in% df$location[1:9])%>% ggplot(aes(reorder(location,-recovered_new),recovered_new))+geom_bar(stat="identity",aes(fill=location))+labs(y="total",x="")+theme(legend.position = "")+ geom_text(aes(label=recovered_new),vjust=-10000)+scale_fill_brewer(palette = "Set1")+theme(axis.text.x = element_text(angle = 0))
-ggplotly(p3)
-
+r <-  df %>%arrange(-recovered_new)
+r %>% filter(location %in% r$location[1:12])%>%       
+  hchart("column",hcaes(x=location,y=recovered_new,color=location),name="Recovered",dataLabels = list(align = "center", enabled = TRUE)) %>% hc_yAxis(title=list(text="Total Recovered case")) %>%hc_xAxis(title="") %>%hc_add_theme(hc_theme_ggplot2())
 ```
+
 
 ### Top countries with death
 
 ```{r}
-p2 <- df %>%filter(location %in% df$location[1:9])%>% ggplot(aes(reorder(location,-deaths_new),deaths_new))+geom_bar(stat="identity",aes(fill=location))+labs(y="total",x="")+theme(legend.position = "")+scale_y_continuous(breaks = seq(0,250000,50000))+geom_text(aes(label=deaths_new),vjust=-10000)+scale_fill_brewer(palette = "Set1")+theme(axis.text.x = element_text(angle = 0))
-ggplotly(p2)
-
+df%>%filter(location %in% df$location[1:12])%>%       
+  hchart("column",hcaes(x=location,y=cases_new,color=location),name="Confirmed Cases") %>%hc_yAxis(title=list(text="Total death cases")) %>%hc_xAxis(title="")
 ```
+
 
 World Map
 ================================================================
@@ -195,17 +195,14 @@ m
 
 ```
 
-### Bangladesh Overall Scenario
+### Overall Scenario of Bangladesh 
 
 ```{r}
 data$data_type <- str_replace(data$data_type,"_new","")
-p2 <- data %>% filter(location=="Bangladesh") %>%
+data %>% filter(location=="Bangladesh") %>%
   group_by(data_type,date) %>%
   summarise(sum_case=sum(value))%>%
-  mutate(cum_case=cumsum(sum_case))%>%
-  ggplot(aes(date,cum_case))+geom_path(aes(col=data_type),size=1.2)+
-  labs(y="Cumulative case ",x="months of 2020 ",caption = "Data : WHO")+
-  scale_y_continuous(breaks = seq(0,1.5e+7,50000))+scale_x_date(date_breaks = "1 month",date_labels = "%b %d")
+  mutate(cum_case=cumsum(sum_case)) %>% hchart("line",hcaes(x=date,y=cum_case,group=data_type,),dataLabels = list(align = "center", enabled = TRUE)) %>% hc_yAxis(title=list(text="Cumulative Total"))%>% hc_colors(c("#0073C2FF", "#EFC000FF","red")) %>% hc_add_theme(hc_theme_ggplot2())
 
-ggplotly(p2)
+
 ```
