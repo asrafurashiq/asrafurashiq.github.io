@@ -1,5 +1,2 @@
-* text=auto
-*.r linguist-vendored
-*.r linguist-vendored
-*.r linguist-vendored
-CHANGELOG.md export-ignore
+*.html linguist-detectable=false
+*.r linguist-detectable=true
