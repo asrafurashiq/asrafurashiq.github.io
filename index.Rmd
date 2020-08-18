@@ -1,10 +1,10 @@
 ---
-title: "Covid-19 Dashboard by Ashiq"
+title: "Covid-19 Dashboard by Me :')"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
     social: menu
-    vertical_layout: scroll
+    vertical_layout: fill
     theme: cerulean
     source_code: embed
 ---
@@ -12,10 +12,9 @@ output:
 library(flexdashboard)
 library(tidyverse)
 library(leaflet)
-load("datafinal.Rdata")
-load("df.Rdata")
-#source("Data manipulation.R",local = T)
-theme_set(ggthemes::theme_economist())
+# load("datafinal.Rdata")
+# load("df.Rdata")
+source("Data manipulation.R",local = T)
 
 ```
 
@@ -34,9 +33,30 @@ d <- Sys.Date()-1
 _About :_
 My name is **Md Asrafur Rahman Ashiq**.I am a student of the department of Statistics at University of Dhaka,Bangladesh.I tried to build this dashboard.It's my first dashboard.Any kinds of mistake should be forgiven and mentioned.
 
-Data source: ```coronavirus``` package from Comprehensive R Archive Network(CRAN).
+Data source: ```coronavirus``` package from Comprehensive R Archive Network**(CRAN)**.
 
-[Know more about me(LinkedIn)]("https://www.linkedin.com/in/md-asrafur-rahman-ashiq-5462ab1a0/")
+[Know more about this project]("https://github.com/asrafurashiq/asrafurashiq.github.io")
+
+Symptoms of Covid-19:
+ 
+ Most common symptoms:
+ 
+1.fever
+ 2.dry cough
+  3.tiredness
+
+Less common symptoms:
+
+4.aches and pains
+ 5.sore throat
+  6.diarrhoea
+   7.conjunctivitis
+    8.headache
+     9.loss of taste or smell
+     
+
+[My Facebook profile]("https://www.facebook.com/mohammadasrafur.rahmanashiq")     
+
 
  Row
 ----------------------------------------------
@@ -80,26 +100,19 @@ df%>%filter(location %in% df$location[1:12])%>%
   hchart("column",hcaes(x=location,y=cases_new,color=location),name="Confirmed Cases",dataLabels = list(align = "center", enabled = TRUE)) %>%hc_yAxis(title=list(text="Total confirmed case")) %>%hc_xAxis(title="")%>%hc_add_theme(hc_theme_ggplot2())
 ```
 
-### Datasets
-
-```{r}
-d <- df%>%select(-lat,-long)  %>% rename(Cases=cases_new,
-                                         Deaths=deaths_new,
-                                         Recovered=recovered_new)
-d$lat <- NULL
-d %>%DT::datatable()
-```
 
 ### Countries over date
+
 ```{r}
 data %>% filter(location==df$location[1:10]) %>% group_by(location,date) %>%
-  summarise(sum=sum(value))%>% mutate(cum=cumsum(sum)) %>% hchart("line",hcaes(x=date,y=cum,group=location))%>%hc_yAxis(title=list(text="Cumulative Confirmed cases"))
+  summarise(sum=sum(value))%>% mutate(cum=cumsum(sum)) %>% hchart("line",hcaes(x=date,y=cum,group=location))%>%hc_yAxis(title=list(text="Cumulative Confirmed cases")) %>%hc_add_theme(hc_theme_ggplot2())
 ```
 
  Row {.tabset}
 ------------------------------------------------------------
 
 ### Top recovered countries
+
 ```{r}
 r <-  df %>%arrange(-recovered_new)
 r %>% filter(location %in% r$location[1:12])%>%       
@@ -111,7 +124,18 @@ r %>% filter(location %in% r$location[1:12])%>%
 
 ```{r}
 df%>%filter(location %in% df$location[1:12])%>%       
-  hchart("column",hcaes(x=location,y=cases_new,color=location),name="Confirmed Cases") %>%hc_yAxis(title=list(text="Total death cases")) %>%hc_xAxis(title="")
+  hchart("column",hcaes(x=location,y=deaths_new,color=location),name="Deaths :",dataLabels = list(align = "center", enabled = TRUE)) %>%hc_yAxis(title=list(text="Total death cases")) %>%hc_xAxis(title="")
+```
+
+### Datasets
+
+```{r}
+d <- df%>%select(-lat,-long)  %>% rename(Cases=cases_new,
+                                         Deaths=deaths_new,
+                                         Recovered=recovered_new)
+d$lat <- NULL
+
+DT::datatable(d)
 ```
 
 
@@ -141,6 +165,10 @@ df %>%
 
  Situation of Bangladesh
 ===============================================================
+
+ Sidebar{.sidebar}
+------------------------------------------------------------
+Wikipedia says,The COVID-19 pandemic in Bangladesh is part of the worldwide pandemic of coronavirus disease 2019 (COVID-19) caused by severe acute respiratory syndrome coronavirus 2 (SARS-CoV-2). The virus was confirmed to have spread to Bangladesh in March 2020. The first three known cases were reported on 8 March 2020 by the country's epidemiology institute, IEDCR. Since then, the pandemic has spread day by day over the whole nation and the number of affected people has been increasing. 
 
  Row
 ----------------------------------------------
