@@ -12,9 +12,9 @@ output:
 library(flexdashboard)
 library(tidyverse)
 library(leaflet)
-# load("datafinal.Rdata")
-# load("df.Rdata")
-source("Data manipulation.R",local = T)
+load("datafinal.Rdata")
+load("df.Rdata")
+#source("Data manipulation.R",local = T)
 
 ```
 
@@ -104,7 +104,7 @@ df%>%filter(location %in% df$location[1:12])%>%
 ### Countries over date
 
 ```{r}
-data %>% filter(location==df$location[1:10]) %>% group_by(location,date) %>%
+data %>% filter(location %in% df$location[1:10]) %>% group_by(location,date) %>%
   summarise(sum=sum(value))%>% mutate(cum=cumsum(sum)) %>% hchart("line",hcaes(x=date,y=cum,group=location))%>%hc_yAxis(title=list(text="Cumulative Confirmed cases")) %>%hc_add_theme(hc_theme_ggplot2())
 ```
 
@@ -127,16 +127,7 @@ df%>%filter(location %in% df$location[1:12])%>%
   hchart("column",hcaes(x=location,y=deaths_new,color=location),name="Deaths :",dataLabels = list(align = "center", enabled = TRUE)) %>%hc_yAxis(title=list(text="Total death cases")) %>%hc_xAxis(title="")
 ```
 
-### Datasets
 
-```{r}
-d <- df%>%select(-lat,-long)  %>% rename(Cases=cases_new,
-                                         Deaths=deaths_new,
-                                         Recovered=recovered_new)
-d$lat <- NULL
-
-DT::datatable(d)
-```
 
 
 World Map
@@ -175,8 +166,8 @@ Wikipedia says,The COVID-19 pandemic in Bangladesh is part of the worldwide pand
 
 ### Worldwide Confirmed {.value-box}
 ```{r}
-df <- df %>% filter(location=="Bangladesh")
-valueBox(value = paste(format(sum(df$cases_new,na.rm = T), big.mark = ","), "", sep = " "), 
+dfb <- df %>% filter(location=="Bangladesh")
+valueBox(value = paste(format(sum(dfb$cases_new,na.rm = T), big.mark = ","), "", sep = " "), 
          caption = "Total Confirmed Cases", 
          icon = "fas fa-user-md", 
          color ="violet")
@@ -184,8 +175,8 @@ valueBox(value = paste(format(sum(df$cases_new,na.rm = T), big.mark = ","), "", 
 
 ### Death {.value-box}
 ```{r}
-valueBox(value = paste(format(sum(df$deaths_new, na.rm = TRUE), big.mark = ","), " (",
-                       round(100 * sum(df$deaths_new, na.rm = TRUE) / sum(df$cases_new,na.rm=T), 1), 
+valueBox(value = paste(format(sum(dfb$deaths_new, na.rm = TRUE), big.mark = ","), " (",
+                       round(100 * sum(dfb$deaths_new, na.rm = TRUE) / sum(dfb$cases_new,na.rm=T), 1), 
                        "%)", sep = ""),
          caption = "Death Cases", 
          icon = "fa-heartbeat", 
@@ -194,8 +185,8 @@ valueBox(value = paste(format(sum(df$deaths_new, na.rm = TRUE), big.mark = ","),
 
 ### Recovered {.value-box}
 ```{r}
-valueBox(value = paste(format(sum(df$recovered_new, na.rm = TRUE), big.mark = ","), " (",
-                       round(100 * sum(df$recovered_new, na.rm = TRUE) / sum(df$cases_new,na.rm=T), 1), 
+valueBox(value = paste(format(sum(dfb$recovered_new, na.rm = TRUE), big.mark = ","), " (",
+                       round(100 * sum(dfb$recovered_new, na.rm = TRUE) / sum(df$bcases_new,na.rm=T), 1), 
                        "%)", sep = ""),
          caption = "Recovered Cases", 
          icon = "fa-walking", 
@@ -233,4 +224,35 @@ data %>% filter(location=="Bangladesh") %>%
   mutate(cum_case=cumsum(sum_case)) %>% hchart("line",hcaes(x=date,y=cum_case,group=data_type,),dataLabels = list(align = "center", enabled = TRUE)) %>% hc_yAxis(title=list(text="Cumulative Total"))%>% hc_colors(c("#0073C2FF", "#EFC000FF","red")) %>% hc_add_theme(hc_theme_ggplot2())
 
 
+```
+
+ Data Table
+===============================================
+ 
+ Sidebar{.sidebar}
+------------------------------------------------
+
+The data associated in this dashboard was downloaded from the ```coronavirus``` package from Comprehensive R Archive Network***(CRAN).***
+
+You can get the data by running the following code in **R**:
+
+```
+install.packages("coronavirus")
+library(coronavirus)
+covid_data <- refresh_coronavirus_jhu()
+head(covid_data,10)
+```
+
+ Row
+---------------------------------------------------- 
+
+### DataTable
+
+```{r}
+d <- df%>%select(-lat,-long)  %>% rename(Cases=cases_new,
+                                         Deaths=deaths_new,
+                                         Recovered=recovered_new)
+d$lat <- NULL
+
+DT::datatable(d)
 ```
