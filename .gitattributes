@@ -1,5 +1,5 @@
 *.R linguist-detectable=true
-*.Rmd linguist-detectable=true
+*.Rproj linguist-detectable=true
 *.html linguist-detectable=false
 *.htm inguist-detectable=false
 public/libs/* linguist-vendored
