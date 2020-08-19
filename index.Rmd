@@ -256,3 +256,21 @@ d$lat <- NULL
 
 DT::datatable(d)
 ```
+
+ About
+========================================================
+
+ Sidebar{.sidebar}
+---------------------------------------------------------
+I am a young data science enthusiasist and this is my first dashboard.It was built using R prgoramming language and the data was collected from the ```coronavirus``` package.
+
+
+ Row
+---------------------------------------------------------
+
+```{r fig.height=8, fig.width=6}
+library(magick)
+image_read("resized.jpg")
+
+
+```
