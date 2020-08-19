@@ -141,7 +141,7 @@ As of **15 August 2020**, there have been at least 765,029 confirmed deaths and 
 Column {data-width=650}
 -----------------------------------------------------------------------
 
-### Countries with more than 50k confirmed cases
+### Countries with more than 50k confirmed cases(click the markers for details)
 ```{r fig.height=6.4}
 df %>% 
  filter(cases_new>50000) %>% leaflet()%>%addTiles()%>%
@@ -186,7 +186,7 @@ valueBox(value = paste(format(sum(dfb$deaths_new, na.rm = TRUE), big.mark = ",")
 ### Recovered {.value-box}
 ```{r}
 valueBox(value = paste(format(sum(dfb$recovered_new, na.rm = TRUE), big.mark = ","), " (",
-                       round(100 * sum(dfb$recovered_new, na.rm = TRUE) / sum(df$bcases_new,na.rm=T), 1), 
+                       round(100 * sum(dfb$recovered_new, na.rm = TRUE) / sum(dfb$cases_new,na.rm=T), 1), 
                        "%)", sep = ""),
          caption = "Recovered Cases", 
          icon = "fa-walking", 
