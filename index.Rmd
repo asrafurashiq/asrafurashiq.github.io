@@ -197,20 +197,25 @@ valueBox(value = paste(format(sum(dfb$recovered_new, na.rm = TRUE), big.mark = "
  Column
 ---------------------------------------------------------------
 
-### Districts with more than 2500 confirmed cases(This map was last updated on 15 August,2020.)
+### Districts highlights (Last updated on 15 August,2020.)
 
-```{r fig.height=5}
-library(sf)
-bd <- read_sf("Bangladesh data/BGD_adm2.shp")
-district <- readxl::read_xlsx("Bangladesh data/COVID-19.xlsx")
-#district <- district %>% mutate_geocode(District,source='dsk')
-#save(district,file="lat lon district.Rdata")
-load("lat lon district.Rdata")
-district <- district  %>% mutate(lab=ifelse(Cases>2500,paste(District,Cases),NA))
-m <-  ggplot(bd)+geom_sf(aes(fill=NAME_2))+
-  geom_point(data=district,aes(x=lon,y=lat,size=Cases),col="red")+
-  ggrepel::geom_label_repel(data=district,aes(x=lon,y=lat,label=as.character(lab),alpha=.5))+theme_minimal()+theme(legend.position = "")
-m
+```{r}
+load("bd_map_data_complete.Rdata")
+
+qpal <- colorQuantile(rev(viridis::viridis(4)),
+                      bd_map_data$Cases, n=4)
+
+leaflet(bd_map_data,options =
+          leafletOptions(attributionControl = FALSE, minzoom=1.5))%>%
+  addPolygons(popup = ~Cases,color='#333333',weight = 1,fill =~qpal(Cases),fillColor = ~qpal(Cases),fillOpacity = .7,
+              label=~paste(NAME_2," Confirmed cases :",Cases),labelOptions = labelOptions(textsize = "15px",direction = "auto"))%>%
+  
+  addTiles()%>%setView(lat=24,lng = 90.3,zoom=6.5)%>%
+  addLegend(
+    "bottomleft",values = ~Cases,pal=qpal,
+    title = ~paste(sep = "<br/>","Confirmed Cases ",paste("Total",sum(Cases))),
+    opacity = 1 )
+
 
 ```
 
