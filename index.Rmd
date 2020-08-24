@@ -12,9 +12,9 @@ output:
 library(flexdashboard)
 library(tidyverse)
 library(leaflet)
-load("datafinal.Rdata")
-load("df.Rdata")
-#source("Data manipulation.R",local = T)
+# load("datafinal.Rdata")
+# load("df.Rdata")
+source("Data manipulation.R",local = T)
 
 ```
 
