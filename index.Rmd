@@ -259,7 +259,7 @@ d <- df%>%select(-lat,-long)  %>% rename(Cases=cases_new,
                                          Recovered=recovered_new)
 d$lat <- NULL
 
-DT::datatable(d)
+DT::datatable(d, options = list(paging = T))
 ```
 
  About
